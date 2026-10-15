@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="지도를 그리는 디자이너 한서윤의 자기소개 페이지">
+<title>한서윤 지도 제작자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 측량 도면처럼 좌측 좌표 레일 + 우측 본문, 배경엔 등고선 */
+:root{
+  --paper:#eef2ef; --paper-2:#e2e9e5; --ink:#17302a; --ink-soft:#4d635c;
+  --line:#c3d1ca; --contour:rgba(23,48,42,.10); --accent:#2f5bd3; --accent-ink:#ffffff;
+  --display:"Nanum Myeongjo","Batang",serif;
+  --body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1a17; --paper-2:#16241f; --ink:#dbe7e1; --ink-soft:#93a9a1;
+  --line:#2a3d37; --contour:rgba(219,231,225,.08); --accent:#8eaaff; --accent-ink:#0f1a17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1a17; --paper-2:#16241f; --ink:#dbe7e1; --ink-soft:#93a9a1;
+  --line:#2a3d37; --contour:rgba(219,231,225,.08); --accent:#8eaaff; --accent-ink:#0f1a17; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.75;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+#contours{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding-block:48px 72px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+header.top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;border-bottom:1px solid var(--line);padding-bottom:14px}
+header.top nav{display:flex;gap:20px;flex-wrap:wrap}
+header.top nav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
+header.top nav a:hover{color:var(--accent)}
+
+.hero{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;padding-block:72px 56px}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(56px,11vw,120px);line-height:1;margin:0 0 20px;letter-spacing:-.02em}
+.hero h1 span{display:block;font-size:.32em;font-weight:700;letter-spacing:0;color:var(--ink-soft);margin-top:14px}
+.hero p.lede{max-width:34em;margin:0;font-size:18px;text-wrap:pretty}
+.legend{border:1px solid var(--ink);background:var(--paper);padding:14px 16px;min-width:220px}
+.legend h2{margin:0 0 8px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
+.legend dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+.legend dt{color:var(--ink-soft)}
+.legend dd{margin:0}
+.scalebar{display:flex;margin-top:12px;height:6px;border:1px solid var(--ink)}
+.scalebar i{flex:1}.scalebar i:nth-child(odd){background:var(--ink)}
+.scalelab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-soft);margin-top:3px}
+
+section{display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px 40px;padding-block:48px;border-top:1px solid var(--line)}
+section > .rail{position:relative}
+section > .rail h2{font-family:var(--display);font-size:26px;margin:0 0 6px;font-weight:800;text-wrap:balance}
+section > div{min-width:0}
+
+.about p{margin:0 0 1em;max-width:62ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;padding:0;list-style:none}
+.facts li{border:1px solid var(--line);padding:4px 12px;font-size:13px;border-radius:99px;background:var(--paper)}
+
+.works{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.work{background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;transition:transform .25s ease,border-color .25s}
+.work:hover{transform:translateY(-3px);border-color:var(--ink)}
+.work canvas{display:block;width:100%;aspect-ratio:16/10;max-width:100%;border-bottom:1px solid var(--line);background:var(--paper-2)}
+.work .body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px;flex:1}
+.work h3{margin:0;font-size:18px;font-weight:600}
+.work p{margin:0;font-size:14px;color:var(--ink-soft);line-height:1.65}
+.work .meta{display:flex;justify-content:space-between;margin-top:auto;padding-top:10px}
+
+.timeline{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.timeline li{display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;padding-block:16px;border-bottom:1px dashed var(--line)}
+.timeline li:last-child{border-bottom:0}
+.timeline h3{margin:0;font-size:16px;font-weight:600}
+.timeline p{margin:2px 0 0;font-size:14px;color:var(--ink-soft)}
+
+.contact p{margin:0 0 20px;max-width:52ch}
+.mailrow{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.mail{font-family:var(--mono);font-size:clamp(16px,3.4vw,22px);user-select:all;border-bottom:2px solid var(--accent);padding-bottom:2px;word-break:break-all}
+button.copy{font:500 13px var(--body);background:var(--accent);color:var(--accent-ink);border:0;padding:8px 14px;cursor:pointer;border-radius:2px}
+button.copy:hover{filter:brightness(1.08)}
+.links{display:flex;gap:20px;flex-wrap:wrap;margin-top:24px;font-size:14px}
+
+footer{border-top:1px solid var(--ink);padding-top:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+@media (max-width:720px){
+  .hero{grid-template-columns:1fr;padding-block:48px 40px}
+  section{grid-template-columns:1fr;gap:16px}
+  .timeline li{grid-template-columns:1fr;gap:2px}
+}
+@media (prefers-reduced-motion:reduce){.work{transition:none}.work:hover{transform:none}}
+</style>
+</head>
+<body>
+
+<canvas id="contours" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="top">
+    <span class="mono">SHEET 01 / 서울 · 37°33′59″N 126°58′41″E</span>
+    <nav aria-label="섹션">
+      <a href="#about">소개</a><a href="#work">작업</a><a href="#career">경력</a><a href="#contact">연락</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>한서윤<span>지도를 그리는 디자이너</span></h1>
+      <p class="lede">도시의 골목, 산의 능선, 버스 노선처럼 복잡한 공간 정보를 한눈에 읽히는 지도로 바꿉니다. 서울에서 9년째 지도와 인터페이스 사이를 오가며 일하고 있어요.</p>
+    </div>
+    <aside class="legend" aria-label="범례">
+      <h2>범례 Legend</h2>
+      <dl>
+        <dt>거주</dt><dd>서울 마포구</dd>
+        <dt>전문</dt><dd>지도 · UX · 데이터</dd>
+        <dt>경력</dt><dd>9년</dd>
+        <dt>현재</dt><dd>새 프로젝트 가능</dd>
+      </dl>
+      <div class="scalebar"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="scalelab"><span>0</span><span>250</span><span>500 m</span></div>
+    </aside>
+  </div>
+
+  <section id="about" class="about">
+    <div class="rail"><h2>소개</h2><span class="mono">ABOUT</span></div>
+    <div>
+      <p>대학에서 지리학을 공부하다가 종이 지도의 타이포그래피에 빠져 디자인으로 진로를 바꿨습니다. 지금은 내비게이션 앱, 관광 안내 지도, 공공기관 데이터 시각화를 주로 만듭니다.</p>
+      <p>좋은 지도는 모든 것을 담지 않는다고 믿습니다. 사람이 그 자리에서 내려야 하는 결정 하나를 위해, 나머지 정보를 얼마나 덜어낼 수 있는지가 제 일의 대부분입니다.</p>
+      <p>주말에는 등산로를 걸으며 GPS 기록을 모으고, 그걸로 손그림 지도를 그려 작은 독립출판물로 냅니다.</p>
+      <ul class="facts">
+        <li>QGIS · Mapbox Studio</li><li>Figma</li><li>D3.js</li><li>한국어 · 영어 · 일본어</li><li>백두대간 종주 진행 중</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="rail"><h2>작업</h2><span class="mono">SELECTED WORK</span></div>
+    <div class="works">
+      <article class="work">
+        <canvas data-seed="3" data-kind="topo" aria-hidden="true"></canvas>
+        <div class="body">
+          <h3>북한산 둘레길 안내 지도</h3>
+          <p>21개 구간의 고도와 소요 시간을 한 장에 담은 탐방 지도. 안내판 140곳에 설치됐습니다.</p>
+          <div class="meta mono"><span>1:25,000</span><span>2025</span></div>
+        </div>
+      </article>
+      <article class="work">
+        <canvas data-seed="7" data-kind="transit" aria-hidden="true"></canvas>
+        <div class="body">
+          <h3>심야버스 노선도 리디자인</h3>
+          <p>N버스 14개 노선을 색과 굵기로 다시 정리해 환승 지점을 찾는 시간을 줄였습니다.</p>
+          <div class="meta mono"><span>도식도</span><span>2024</span></div>
+        </div>
+      </article>
+      <article class="work">
+        <canvas data-seed="11" data-kind="grid" aria-hidden="true"></canvas>
+        <div class="body">
+          <h3>골목 그늘 지도</h3>
+          <p>여름 오후 3시 기준 그늘이 지는 골목을 표시한 인터랙티브 지도. 시 공모전 대상작입니다.</p>
+          <div class="meta mono"><span>1:5,000</span><span>2023</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="career">
+    <div class="rail"><h2>경력</h2><span class="mono">CAREER</span></div>
+    <ol class="timeline">
+      <li><span class="mono">2023 — 현재</span><div><h3>독립 지도 디자이너</h3><p>공공기관·출판사·스타트업과 지도 및 데이터 시각화 프로젝트 진행</p></div></li>
+      <li><span class="mono">2019 — 2023</span><div><h3>길잡이랩 · 지도 UX 리드</h3><p>내비게이션 앱 지도 스타일과 경로 안내 화면 설계, 디자이너 5명 팀 리드</p></div></li>
+      <li><span class="mono">2017 — 2019</span><div><h3>한빛지도 · 지도 편집자</h3><p>관광 안내 지도와 지자체 홍보 지도 제작</p></div></li>
+      <li><span class="mono">2017</span><div><h3>서원대학교 지리학과 졸업</h3><p>졸업 논문: 종이 지도에서 지명 배치가 길찾기 속도에 미치는 영향</p></div></li>
+    </ol>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="rail"><h2>연락</h2><span class="mono">CONTACT</span></div>
+    <div>
+      <p>지도가 필요한 프로젝트가 있거나, 그냥 좋아하는 지도 이야기를 나누고 싶다면 편하게 메일 주세요. 보통 이틀 안에 답장합니다.</p>
+      <div class="mailrow">
+        <span class="mail" id="mail">hello@seoyun-maps.kr</span>
+        <button class="copy" id="copyBtn" type="button">주소 복사</button>
+      </div>
+      <div class="links">
+        <a href="https://example.com" target="_blank" rel="noopener">포트폴리오 PDF</a>
+        <a href="https://example.com" target="_blank" rel="noopener">인스타그램</a>
+        <a href="https://example.com" target="_blank" rel="noopener">독립출판물</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="mono">© 2026 한서윤</span>
+    <span class="mono">좌표계 EPSG:5186 · 축척 자유</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function rng(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return((s>>>0)%10000)/10000}}
+  // simple value-noise field
+  function field(seed){
+    const r=rng(seed), pts=[];
+    for(let i=0;i<7;i++)pts.push({x:r(),y:r(),h:.4+r()*.8,s:.12+r()*.25});
+    return (x,y)=>{let v=0;for(const p of pts){const dx=x-p.x,dy=y-p.y;v+=p.h*Math.exp(-(dx*dx+dy*dy)/(p.s*p.s))}return v};
+  }
+  // marching squares contour
+  function contours(ctx,w,h,f,levels,step,color,lw){
+    ctx.strokeStyle=color;ctx.lineWidth=lw;
+    const cols=Math.ceil(w/step)+1,rows=Math.ceil(h/step)+1,g=new Float32Array(cols*rows);
+    for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)g[j*cols+i]=f(i*step/w,j*step/h);
+    for(const L of levels){
+      ctx.beginPath();
+      for(let j=0;j<rows-1;j++)for(let i=0;i<cols-1;i++){
+        const a=g[j*cols+i],b=g[j*cols+i+1],c=g[(j+1)*cols+i+1],d=g[(j+1)*cols+i];
+        const x=i*step,y=j*step,e=[];
+        const lerp=(p,q)=>(L-p)/(q-p);
+        if((a<L)!==(b<L))e.push([x+step*lerp(a,b),y]);
+        if((b<L)!==(c<L))e.push([x+step,y+step*lerp(b,c)]);
+        if((d<L)!==(c<L))e.push([x+step*lerp(d,c),y+step]);
+        if((a<L)!==(d<L))e.push([x,y+step*lerp(a,d)]);
+        for(let k=0;k+1<e.length;k+=2){ctx.moveTo(e[k][0],e[k][1]);ctx.lineTo(e[k+1][0],e[k+1][1])}
+      }
+      ctx.stroke();
+    }
+  }
+  function sized(cv){const d=Math.min(devicePixelRatio||1,2),r=cv.getBoundingClientRect();cv.width=Math.max(1,r.width*d);cv.height=Math.max(1,r.height*d);const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);return [c,r.width,r.height]}
+
+  function drawBg(){
+    const cv=document.getElementById('contours');const [c,w,h]=sized(cv);
+    c.clearRect(0,0,w,h);
+    const f=field(42),lv=[];for(let i=1;i<14;i++)lv.push(i*.09);
+    contours(c,w,h,f,lv,Math.max(10,w/90),css('--contour'),1);
+  }
+  function drawCard(cv){
+    const [c,w,h]=sized(cv),seed=+cv.dataset.seed,kind=cv.dataset.kind,ink=css('--ink'),acc=css('--accent'),soft=css('--line');
+    c.clearRect(0,0,w,h);
+    const r=rng(seed);
+    if(kind==='topo'){
+      const f=field(seed),lv=[];for(let i=1;i<18;i++)lv.push(i*.07);
+      contours(c,w,h,f,lv,6,ink,.7);
+      c.strokeStyle=acc;c.lineWidth=2.2;c.setLineDash([6,4]);c.beginPath();
+      c.moveTo(w*.08,h*.85);for(let t=0;t<=1;t+=.05)c.lineTo(w*(.08+t*.84),h*(.85-t*.6+Math.sin(t*9)*.08));c.stroke();c.setLineDash([]);
+    }else if(kind==='transit'){
+      c.lineCap='round';c.lineJoin='round';
+      const cols=[acc,ink,css('--ink-soft')];
+      for(let k=0;k<5;k++){
+        c.strokeStyle=cols[k%3];c.lineWidth=k===0?5:3;c.beginPath();
+        let x=w*.05,y=h*(.15+r()*.7);c.moveTo(x,y);
+        while(x<w*.95){const dx=w*(.08+r()*.12);const turn=r();if(turn<.4){x+=dx;}else{const dy=(r()<.5?-1:1)*Math.min(dx,h*.2);x+=dx;y=Math.min(h*.9,Math.max(h*.1,y+dy));}c.lineTo(Math.min(x,w*.95),y)}
+        c.stroke();
+      }
+      c.fillStyle=css('--paper');c.strokeStyle=ink;c.lineWidth=2;
+      for(let k=0;k<4;k++){c.beginPath();c.arc(w*(.2+k*.2),h*(.3+r()*.4),5,0,7);c.fill();c.stroke()}
+    }else{
+      c.strokeStyle=soft;c.lineWidth=1;
+      for(let x=0;x<w;x+=22){c.beginPath();c.moveTo(x,0);c.lineTo(x+h*.25,h);c.stroke()}
+      for(let y=0;y<h;y+=18){c.beginPath();c.moveTo(0,y);c.lineTo(w,y-w*.1);c.stroke()}
+      c.fillStyle=acc;c.globalAlpha=.55;
+      for(let k=0;k<26;k++){const x=r()*w,y=r()*h;c.fillRect(x,y,8+r()*30,5+r()*8)}
+      c.globalAlpha=1;c.strokeStyle=ink;c.lineWidth=2.5;c.beginPath();c.moveTo(0,h*.6);c.lineTo(w,h*.45);c.stroke();
+    }
+  }
+  function drawAll(){drawBg();document.querySelectorAll('canvas[data-kind]').forEach(drawCard)}
+  let t;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(drawAll,120)});
+  const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',drawAll);
+  new MutationObserver(drawAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(drawAll);
+  drawAll();
+
+  const btn=document.getElementById('copyBtn'),mail=document.getElementById('mail');
+  btn.addEventListener('click',()=>{
+    const done=()=>{btn.textContent='복사됨';setTimeout(()=>btn.textContent='주소 복사',1600)};
+    const fallback=()=>{const s=getSelection(),rg=document.createRange();rg.selectNodeContents(mail);s.removeAllRanges();s.addRange(rg);btn.textContent='선택됨 · 직접 복사하세요'};
+    try{navigator.clipboard.writeText(mail.textContent).then(done,fallback)}catch(e){fallback()}
+  });
+})();
+</script>
+</body>
+</html>
